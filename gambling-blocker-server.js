@@ -1,6 +1,4 @@
-```js id="8yq3hf"
-// gambling-blocker-server.js
-
+```js
 import express from 'express';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -15,7 +13,7 @@ app.use(express.json({
   limit: '50mb'
 }));
 
-// File upload handling
+// File uploads
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -23,11 +21,12 @@ const upload = multer({
   }
 });
 
-// In-memory database
+// In-memory lock database
 const lockDatabase = new Map();
 
-// Verify server time
+// Get verified server time
 const getVerifiedServerTime = async () => {
+
   try {
 
     const response =
@@ -35,14 +34,15 @@ const getVerifiedServerTime = async () => {
         'https://worldtimeapi.org/api/timezone/UTC'
       );
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     return data.unixtime * 1000;
 
   } catch (err) {
 
     console.error(
-      'Time verification failed'
+      'Time API failed'
     );
 
     return Date.now();
@@ -67,6 +67,28 @@ const generateLockHash = (
 };
 
 /**
+ * ROOT
+ */
+app.get('/', (req, res) => {
+
+  res.send(`
+    <h1>🔒 Gambling Blocker API</h1>
+
+    <p>
+      Server is running.
+    </p>
+
+    <p>
+      Health check:
+      <a href="/api/health">
+        /api/health
+      </a>
+    </p>
+  `);
+
+});
+
+/**
  * HEALTH CHECK
  */
 app.get('/api/health', async (req, res) => {
@@ -75,11 +97,16 @@ app.get('/api/health', async (req, res) => {
     await getVerifiedServerTime();
 
   res.json({
+
     status: 'OK',
+
     serverTime,
+
     timestamp:
-      new Date(serverTime).toISOString()
+      new Date(serverTime)
+        .toISOString()
   });
+
 });
 
 /**
@@ -88,32 +115,40 @@ app.get('/api/health', async (req, res) => {
 app.post(
   '/api/lock',
   upload.single('image'),
+
   async (req, res) => {
 
     try {
 
-      const { walletAddress } = req.body;
+      const { walletAddress } =
+        req.body;
 
-      const imageFile = req.file;
+      const imageFile =
+        req.file;
 
       if (!walletAddress) {
 
         return res.status(400).json({
-          error: 'Wallet address required'
+          error:
+            'Wallet address required'
         });
       }
 
       if (!imageFile) {
 
         return res.status(400).json({
-          error: 'No image uploaded'
+          error:
+            'No image uploaded'
         });
       }
 
-      if (walletAddress.length < 20) {
+      if (
+        walletAddress.length < 20
+      ) {
 
         return res.status(400).json({
-          error: 'Invalid wallet address'
+          error:
+            'Invalid wallet address'
         });
       }
 
@@ -121,18 +156,26 @@ app.post(
       const currentTime =
         await getVerifiedServerTime();
 
-      // 12-hour lock
+      // Lock expires in 12h
       const lockEndTime =
         currentTime +
         (12 * 60 * 60 * 1000);
 
-      // Store image
+      // Store uploaded image
       const encryptedImage = {
-        filename: imageFile.originalname,
-        mimetype: imageFile.mimetype,
-        size: imageFile.size,
+
+        filename:
+          imageFile.originalname,
+
+        mimetype:
+          imageFile.mimetype,
+
+        size:
+          imageFile.size,
+
         data:
-          imageFile.buffer.toString('base64')
+          imageFile.buffer
+            .toString('base64')
       };
 
       // Create tamper-proof hash
@@ -143,11 +186,15 @@ app.post(
           lockEndTime
         );
 
-      // Existing active lock check
-      if (lockDatabase.has(walletAddress)) {
+      // Existing active lock
+      if (
+        lockDatabase.has(walletAddress)
+      ) {
 
         const existingLock =
-          lockDatabase.get(walletAddress);
+          lockDatabase.get(
+            walletAddress
+          );
 
         if (
           existingLock.lockEndTime >
@@ -155,8 +202,10 @@ app.post(
         ) {
 
           return res.status(409).json({
+
             error:
               'Wallet already has active lock',
+
             timeRemaining:
               existingLock.lockEndTime -
               currentTime
@@ -175,7 +224,8 @@ app.post(
 
         lockHash,
 
-        createdAt: currentTime,
+        createdAt:
+          currentTime,
 
         createdAtISO:
           new Date(currentTime)
@@ -190,16 +240,24 @@ app.post(
         lockRecord
       );
 
-      // Append immutable log
+      // Immutable append-only log
       fs.appendFileSync(
         'lock-log.json',
 
         JSON.stringify({
-          action: 'LOCK_CREATED',
+
+          action:
+            'LOCK_CREATED',
+
           walletAddress,
+
           lockEndTime,
-          createdAt: currentTime,
+
+          createdAt:
+            currentTime,
+
           lockHash
+
         }) + '\n'
       );
 
@@ -224,7 +282,9 @@ app.post(
       console.error(err);
 
       res.status(500).json({
-        error: err.message
+
+        error:
+          err.message
       });
     }
   }
@@ -235,20 +295,27 @@ app.post(
  */
 app.get(
   '/api/lock-status/:wallet',
+
   async (req, res) => {
 
     try {
 
-      const { wallet } = req.params;
+      const { wallet } =
+        req.params;
 
       const currentTime =
         await getVerifiedServerTime();
 
-      if (!lockDatabase.has(wallet)) {
+      if (
+        !lockDatabase.has(wallet)
+      ) {
 
         return res.json({
+
           locked: false,
-          message: 'No lock found'
+
+          message:
+            'No lock found'
         });
       }
 
@@ -264,10 +331,12 @@ app.get(
         );
 
       if (
-        expectedHash !== lock.lockHash
+        expectedHash !==
+        lock.lockHash
       ) {
 
         return res.status(400).json({
+
           error:
             'TAMPERING DETECTED'
         });
@@ -285,7 +354,8 @@ app.get(
 
       res.json({
 
-        locked: isLocked,
+        locked:
+          isLocked,
 
         timeRemaining,
 
@@ -293,8 +363,9 @@ app.get(
           lock.lockEndTime,
 
         unlockTime:
-          new Date(lock.lockEndTime)
-            .toISOString(),
+          new Date(
+            lock.lockEndTime
+          ).toISOString(),
 
         currentServerTime:
           currentTime
@@ -303,7 +374,9 @@ app.get(
     } catch (err) {
 
       res.status(500).json({
-        error: err.message
+
+        error:
+          err.message
       });
     }
   }
@@ -314,26 +387,32 @@ app.get(
  */
 app.get(
   '/api/retrieve-image/:wallet',
+
   async (req, res) => {
 
     try {
 
-      const { wallet } = req.params;
+      const { wallet } =
+        req.params;
 
       const currentTime =
         await getVerifiedServerTime();
 
-      if (!lockDatabase.has(wallet)) {
+      if (
+        !lockDatabase.has(wallet)
+      ) {
 
         return res.status(404).json({
-          error: 'No lock found'
+
+          error:
+            'No lock found'
         });
       }
 
       const lock =
         lockDatabase.get(wallet);
 
-      // Lock enforcement
+      // Enforce lock
       if (
         currentTime <
         lock.lockEndTime
@@ -349,8 +428,9 @@ app.get(
             currentTime,
 
           unlockTime:
-            new Date(lock.lockEndTime)
-              .toISOString()
+            new Date(
+              lock.lockEndTime
+            ).toISOString()
         });
       }
 
@@ -366,7 +446,9 @@ app.get(
     } catch (err) {
 
       res.status(500).json({
-        error: err.message
+
+        error:
+          err.message
       });
     }
   }
@@ -377,6 +459,7 @@ app.get(
  */
 app.post(
   '/api/verify-time',
+
   async (req, res) => {
 
     const serverTime =
@@ -387,7 +470,8 @@ app.post(
 
     const difference =
       Math.abs(
-        serverTime - clientTime
+        serverTime -
+        clientTime
       );
 
     res.json({
@@ -413,20 +497,6 @@ app.post(
   }
 );
 
-// Root route
-app.get('/', (req, res) => {
-
-  res.send(`
-    <h1>🔒 Gambling Blocker API</h1>
-    <p>Server is running.</p>
-    <p>Health check:
-      <a href="/api/health">
-        /api/health
-      </a>
-    </p>
-  `);
-});
-
 // Start server
 const PORT =
   process.env.PORT || 3001;
@@ -434,13 +504,9 @@ const PORT =
 app.listen(PORT, () => {
 
   console.log(
-    '🔒 Gambling Blocker running'
+    `🔒 Gambling Blocker running on port ${PORT}`
   );
 
-  console.log(
-    'Port:',
-    PORT
-  );
 });
 
 export default app;
