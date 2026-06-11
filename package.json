@@ -1,0 +1,40 @@
+{
+  "name": "gambling-blocker",
+  "version": "1.0.0",
+  "description": "Cryptographically secure gambling prevention tool with server-side lock enforcement",
+  "type": "module",
+  "main": "gambling-blocker-server.js",
+  "scripts": {
+    "start": "node gambling-blocker-server.js",
+    "dev": "nodemon gambling-blocker-server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "gambling",
+    "blocker",
+    "encryption",
+    "harm-reduction",
+    "crypto",
+    "wallet"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/gambling-blocker.git"
+  }
+}

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔒 Gambling Blocker - Crypto Wallet Lock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(120deg, #ff0000, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 0.95em;
+        }
+
+        .warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid #dc2626;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .warning-icon {
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+
+        .warning-text {
+            font-size: 0.9em;
+            color: #fca5a5;
+            line-height: 1.5;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            background: #0f172a;
+            color: #fff;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        input[type="text"]:disabled,
+        input[type="file"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+        }
+
+        .file-input-wrapper {
+            border: 2px dashed #475569;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input-wrapper:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            display: block;
+            cursor: pointer;
+        }
+
+        .file-icon {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        .file-name {
+            color: #cbd5e1;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .file-hint {
+            color: #64748b;
+            font-size: 0.85em;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-lock {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-lock:hover:not(:disabled) {
+            background: #991b1b;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-loading {
+            background: #7c3aed;
+        }
+
+        .status-message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .status-success {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 4px solid #22c55e;
+            color: #86efac;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            color: #fca5a5;
+        }
+
+        .lock-display {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .lock-icon {
+            font-size: 2.5em;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .lock-status {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #60a5fa;
+            margin-bottom: 12px;
+        }
+
+        .countdown {
+            font-size: 3em;
+            font-weight: bold;
+            color: #3b82f6;
+            margin: 16px 0;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .unlock-time {
+            font-size: 0.9em;
+            color: #64748b;
+        }
+
+        .info-section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .info-section h3 {
+            font-size: 1.2em;
+            margin-bottom: 16px;
+            color: #cbd5e1;
+        }
+
+        .info-list {
+            list-style: none;
+        }
+
+        .info-list li {
+            padding: 8px 0;
+            color: #94a3b8;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .info-list li::before {
+            content: "✓ ";
+            color: #22c55e;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .key-display {
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            word-break: break-all;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.8em;
+            color: #94a3b8;
+        }
+
+        .key-label {
+            font-size: 0.85em;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .countdown {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔒 GAMBLING BLOCKER</h1>
+            <p>Cryptographic self-imposed lock with server enforcement</p>
+        </div>
+
+        <!-- Warning -->
+        <div class="warning">
+            <div class="warning-icon">⚠️</div>
+            <div class="warning-text">
+                <strong>WARNING:</strong> Once locked, your image is encrypted and inaccessible for 12 hours. This is designed to be impossible to bypass. Only proceed if you're committed to this lock period.
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <!-- Wallet Input -->
+            <div class="form-group">
+                <label>💳 Crypto Wallet Address</label>
+                <input 
+                    type="text" 
+                    id="walletInput"
+                    placeholder="0x742d35Cc6634C0532925a3b844Bc9e7595f..."
+                    disabled
+                >
+                <p style="font-size: 0.85em; color: #64748b; margin-top: 8px;">
+                    ⚠️ Server-side locking not yet available. Download the full setup for complete bypass-proof protection.
+                </p>
+            </div>
+
+            <!-- File Input -->
+            <div class="form-group">
+                <label>📸 Select Image to Lock</label>
+                <div class="file-input-wrapper">
+                    <label class="file-label">
+                        <div class="file-icon">📁</div>
+                        <div class="file-name" id="fileName">Click to select image</div>
+                        <div class="file-hint">PNG, JPG, GIF (max 50MB)</div>
+                        <input type="file" id="imageInput" accept="image/*" disabled>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Lock Button -->
+            <button class="btn btn-lock" id="lockBtn" disabled>
+                🔒 Lock for 12 Hours
+            </button>
+
+            <!-- Status Messages -->
+            <div id="statusMessage"></div>
+
+            <!-- Lock Display (hidden initially) -->
+            <div id="lockDisplay" class="lock-display hidden">
+                <span class="lock-icon">🔐</span>
+                <div class="lock-status">IMAGE LOCKED</div>
+                <div class="countdown" id="countdown">--:--:--</div>
+                <div class="unlock-time" id="unlockTime"></div>
+            </div>
+
+            <!-- Encryption Key Display -->
+            <div id="keyDisplay" class="hidden" style="margin-top: 16px;">
+                <div class="key-label">🔑 Encryption Key (save for recovery):</div>
+                <div class="key-display" id="keyContent"></div>
+                <p style="font-size: 0.8em; color: #ef4444; margin-top: 8px;">
+                    ⚠️ Do NOT share this with anyone
+                </p>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-section">
+            <h3>🔐 Why This Works</h3>
+            <ul class="info-list">
+                <li><strong>Download Full Version</strong> for server-side enforcement</li>
+                <li>Military-grade 256-bit encryption</li>
+                <li>Server time verification (not client time)</li>
+                <li>Wallet-tied encryption keys</li>
+                <li>Immutable audit logs</li>
+                <li>No local bypass possible</li>
+            </ul>
+        </div>
+
+        <!-- Download Info -->
+        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; border-radius: 12px; padding: 20px; margin-top: 20px; text-align: center;">
+            <h3 style="margin-bottom: 12px; color: #60a5fa;">📦 Get Full Version</h3>
+            <p style="font-size: 0.95em; color: #cbd5e1; margin-bottom: 16px;">
+                This demo shows the UI. Download the complete package below for true server-enforced locking:
+            </p>
+            <ol style="text-align: left; display: inline-block; font-size: 0.9em; color: #cbd5e1;">
+                <li>✓ Download backend + frontend code</li>
+                <li>✓ Deploy to Render.com (free)</li>
+                <li>✓ Connect to your server</li>
+                <li>✓ Locks are TRULY UNBREAKABLE</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Demo version - shows UI only
+        const walletInput = document.getElementById('walletInput');
+        const imageInput = document.getElementById('imageInput');
+        const fileName = document.getElementById('fileName');
+        const lockBtn = document.getElementById('lockBtn');
+        const statusMsg = document.getElementById('statusMessage');
+        const lockDisplay = document.getElementById('lockDisplay');
+        const countdownDisplay = document.getElementById('countdown');
+        const unlockTimeDisplay = document.getElementById('unlockTime');
+        const keyDisplay = document.getElementById('keyDisplay');
+        const keyContent = document.getElementById('keyContent');
+
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files?.[0]) {
+                fileName.textContent = e.target.files[0].name;
+                lockBtn.disabled = false;
+            }
+        });
+
+        lockBtn.addEventListener('click', async () => {
+            const file = imageInput.files[0];
+            if (!file) {
+                showError('Please select an image');
+                return;
+            }
+
+            // Demo: Show what would happen
+            lockBtn.disabled = true;
+            lockBtn.textContent = '⏳ Connecting to server...';
+
+            setTimeout(() => {
+                showStatus(
+                    'Demo Mode: Full version required for actual locking. Download the complete package to enable real encryption and server enforcement.',
+                    'error'
+                );
+                lockBtn.disabled = false;
+                lockBtn.textContent = '🔒 Lock for 12 Hours';
+            }, 2000);
+        });
+
+        function showStatus(message, type = 'success') {
+            statusMsg.className = `status-message status-${type}`;
+            statusMsg.textContent = message;
+        }
+
+        function showError(message) {
+            showStatus(message, 'error');
+        }
+
+        // Show instructions
+        window.addEventListener('load', () => {
+            showStatus(
+                '📌 This is a demo. Download the full setup from SETUP_GUIDE.md for unbreakable server-enforced locking.',
+                'error'
+            );
+        });
+    </script>
+</body>
+</html>
